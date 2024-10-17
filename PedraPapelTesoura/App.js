@@ -6,12 +6,13 @@ import { Picker } from '@react-native-picker/picker';
 export default function App() {
   const [jogadaSelecionada, setJogadaSelecionada] = useState(0);
   const [jogadaAleatoriaSelecionada, setJogadaAleatoriaSelecionada] = useState(0);
+  let [textoVitorioso, setTextoVitorioso] = useState('');
 
   const [jogadas, setJogadas] = useState([
-    {key: 1, nome: 'Escolha', urlIMG: require('./vazio.png'), enable: false},
-    {key: 2, nome: 'Pedra', urlIMG: require('./pedra.png'), enable: true},
-    {key: 3, nome: 'Papel', urlIMG: require('./papel.png'), enable: true},
-    {key: 4, nome: 'Tesoura', urlIMG: require('./tesoura.png'), enable: true}
+    {key: 1, nome: 'Escolha', urlIMG: require('./vazio.png'), enable: false, ganha: null},
+    {key: 2, nome: 'Pedra', urlIMG: require('./pedra.png'), enable: true, ganha: 'Papel'},
+    {key: 3, nome: 'Papel', urlIMG: require('./papel.png'), enable: true, ganha: 'Tesoura'},
+    {key: 4, nome: 'Tesoura', urlIMG: require('./tesoura.png'), enable: true, ganha: 'Pedra'}
   ]);
   const [jogadaComputador, setJogadaComputador] = useState([
     {key: 1, nome: null, urlIMG: require('./vazio.png')},
@@ -25,8 +26,22 @@ export default function App() {
       index = Math.floor(Math.random() * jogadaComputador.length);
     }
     console.log(index);
+    setJogadaAleatoriaSelecionada(index);
     
     return index;
+  }
+  verificarGanhador = (indexJogador, indexComputador) => {
+    console.log(indexJogador.toString() + indexComputador.toString());
+    
+    if(jogadas[indexJogador].nome === jogadaComputador[indexComputador].nome){
+      setTextoVitorioso('Empatou!');
+    }
+    else if(jogadaComputador[indexComputador].nome === jogadas[indexJogador].ganha){
+      setTextoVitorioso('O computador ganhou!');
+    }
+    else{
+      setTextoVitorioso('Você ganhou!');
+    }
   }
   limparJogadas = () => {
     setJogadaAleatoriaSelecionada(0);
@@ -45,9 +60,10 @@ export default function App() {
 
   let ComponentJogadaUsuario = (() =>{
     return (
-      <View>
-        <Text>Você escolheu:</Text>
-        <Text>{jogadas[jogadaSelecionada].nome}</Text>
+      <View style={styles.viewEscolha}>
+        <Text style={styles.textVitorioso}>{textoVitorioso}</Text>
+        <Text style={styles.textTitle}>Você escolheu:</Text>
+        <Text style={[styles.textEscolha, styles.colorBlue]}>{jogadas[jogadaSelecionada].nome}</Text>
         <Image style={styles.imagem} source={jogadas[jogadaSelecionada].urlIMG}/>
       </View>
     )
@@ -56,11 +72,14 @@ export default function App() {
   let ComponentJogadaMaquina = (() =>{
     return (
       <View>
-        <Text>A máquina escolheu:</Text>
-        <Text>{jogadaComputador[jogadaAleatoriaSelecionada].nome}</Text>
-        <Image style={styles.imagem} source={jogadaComputador[jogadaAleatoriaSelecionada].urlIMG}/>
-        <Button title="Limpar" color='red' onPress={()=> {this.limparJogadas()}}/>
-
+          <View style={styles.viewEscolha}>
+            <Text style={styles.textTitle}>A máquina escolheu:</Text>
+            <Text style={[styles.textEscolha, styles.colorRed]}>{jogadaComputador[jogadaAleatoriaSelecionada].nome}</Text>
+            <Image style={styles.imagem} source={jogadaComputador[jogadaAleatoriaSelecionada].urlIMG}/>
+          </View>
+          <View>
+            <Button title="Limpar" color='red' onPress={()=> {this.limparJogadas()}}/>
+          </View>
       </View>
     )
   })
@@ -68,8 +87,8 @@ export default function App() {
   let EscolherJogadaUsuario = (() =>{
     return (
       <View>
-        <Text>Escolha sua jogada:</Text>
-        <Picker style={{width: 150}} selectedValue={jogadaSelecionada} onValueChange={(item) => {setJogadaSelecionada(item); setJogadaAleatoriaSelecionada(jogadaAleatoria())}}>{jogadasItem}</Picker>
+        <Text style={styles.textTitle}>Escolha sua jogada:</Text>
+        <Picker style={{width: 150}} selectedValue={jogadaSelecionada} onValueChange={(item, n) => {setJogadaSelecionada(item); n = jogadaAleatoria(); verificarGanhador(item, n)}}>{jogadasItem}</Picker>
       </View>
     )
   })
@@ -99,4 +118,41 @@ const styles = StyleSheet.create({
     maxHeight: 50,
     resizeMode: 'contain'
   },
+  textTitle:{
+    fontWeight: 'bold',
+    fontSize: 20,
+  },
+  textVitorioso:{
+    color: 'darkblue',
+    marginBottom: 15,
+    fontWeight: 'bold',
+    fontSize: 20,
+  },
+  textEscolha:{
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+  colorBlue:{
+    color: 'blue',
+  },
+  colorRed:{
+    color: 'red',
+  },
+  inputsPesoAltura:{
+    borderColor: 'black',
+    borderWidth: 1,
+    width: 200,
+    height: 40,
+    borderRadius: 15,
+    textAlign: 'center',
+  },
+  viewEscolha:{
+    marginBottom: 15,
+    alignItems: 'center'
+  },
+  viewBtn:{
+    marginTop: 30,
+    flexDirection: 'row',
+    gap: 15
+  }
 });
